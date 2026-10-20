@@ -495,6 +495,8 @@ section > .wrap{position:relative;z-index:1}
 .gallery__track{display:flex;gap:clamp(12px,1.6vw,20px);overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
   padding:6px max(var(--gutter),calc((100vw - var(--wrap))/2 + var(--gutter))) 20px;cursor:grab;outline:0}
 .gallery__track::-webkit-scrollbar{display:none}
+.gallery__track.is-auto{scroll-snap-type:none;scroll-behavior:auto}
+.gallery__track.is-auto .shot{scroll-snap-align:none}
 .gallery__track.is-drag{cursor:grabbing;scroll-snap-type:none}
 .shot{position:relative;flex:none;width:clamp(240px,62vw,360px);aspect-ratio:2/3;margin:0;border-radius:22px;overflow:hidden;scroll-snap-align:start;
   border:1px solid var(--line-soft);background:var(--deep);
@@ -1032,8 +1034,6 @@ section > .wrap{position:relative;z-index:1}
     <div>
       <p class="label">Contacts officiels</p>
       <ul class="footer__contacts" data-contacts></ul>
-      <p class="label" style="margin-top:18px">Site officiel</p>
-      <p><a data-site href="https://www.richessemassife.com" target="_blank" rel="noopener">www.richessemassife.com</a></p>
     </div>
   </div>
   <div class="wrap footer__bottom">
@@ -1122,7 +1122,6 @@ window.GCAP_CONFIG = {
 
   /* Contacts affichés (affiche officielle) */
   phones: ["+226 77 07 68 68", "+226 54 10 49 87"],
-  website: "www.richessemassife.com",
 
   /* Début de l'événement — Ouagadougou est en UTC+0 */
   eventStart: "2026-11-19T08:00:00Z",
@@ -1212,8 +1211,6 @@ window.GCAP_CONFIG = {
       return '<li><a href="tel:+' + d + '">' + esc(p) + '</a> <small><a href="https://wa.me/' + d + '" target="_blank" rel="noopener">WhatsApp</a></small></li>';
     }).join("");
   }
-  var site = $("[data-site]");
-  if (site && C.website) { site.textContent = C.website; site.href = "https://" + C.website.replace(/^https?:\/\//, ""); }
 
   /* ---------- Vidéo Hero optionnelle ---------- */
   var vid = $(".hero__video");
@@ -1406,6 +1403,49 @@ window.GCAP_CONFIG = {
     if (lb) lb.addEventListener("click", function (e) {
       if (e.target === lbImg) return; lb.hidden = true; document.body.style.overflow = "";
     });
+  }
+
+  /* ---------- Galerie : défilement automatique en boucle ---------- */
+  if (track) {
+    var originals = $$(".shot", track);
+    originals.forEach(function (s) {
+      var c = s.cloneNode(true); c.setAttribute("aria-hidden", "true"); c.classList.add("shot--clone");
+      $$("img", c).forEach(function (im) { im.loading = "eager"; });
+      track.appendChild(c);
+    });
+    track.classList.add("is-auto");
+    var loopW = 0, pos = 0, paused = false, resumeT = null, lastT = 0;
+    var SPEED = 38; // pixels par seconde
+    function measure() {
+      var first = originals[0], firstClone = track.querySelector(".shot--clone");
+      loopW = firstClone.offsetLeft - first.offsetLeft;
+    }
+    function pause(ms) {
+      paused = true; clearTimeout(resumeT);
+      if (ms !== undefined) resumeT = setTimeout(function () { pos = track.scrollLeft; paused = false; }, ms);
+    }
+    function loop(t) {
+      var dt = lastT ? Math.min(64, t - lastT) : 16; lastT = t;
+      if (!paused && loopW > 0 && !document.hidden) {
+        pos += SPEED * dt / 1000;
+        if (pos >= loopW) pos -= loopW;
+        track.scrollLeft = pos;
+      } else if (loopW > 0) {
+        if (track.scrollLeft >= loopW) track.scrollLeft -= loopW;
+        pos = track.scrollLeft;
+      }
+      requestAnimationFrame(loop);
+    }
+    window.addEventListener("load", measure); window.addEventListener("resize", measure); measure();
+    track.addEventListener("mouseenter", function () { pause(); });
+    track.addEventListener("mouseleave", function () { pause(800); });
+    track.addEventListener("touchstart", function () { pause(); }, { passive: true });
+    track.addEventListener("touchend", function () { pause(2500); }, { passive: true });
+    track.addEventListener("pointerdown", function () { pause(); });
+    track.addEventListener("focusin", function () { pause(); });
+    track.addEventListener("focusout", function () { pause(1500); });
+    $$("[data-gal]").forEach(function (b) { b.addEventListener("click", function () { pause(1800); }); });
+    if (!reduce) requestAnimationFrame(loop);
   }
 
   /* ---------- Modal de réservation ---------- */
