@@ -737,3 +737,65 @@ section > .wrap{position:relative;z-index:1}
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
   .reveal,.reveal-img,.shot{opacity:1;transform:none;clip-path:none}
 }
+
+
+/* =========================================================
+   CORRECTIFS MOBILE (petits écrans, texte agrandi Android/iOS)
+   ========================================================= */
+html{overflow-x:hidden;overflow-x:clip;text-size-adjust:100%}
+body{overflow-x:hidden;overflow-x:clip}
+main,section,footer{max-width:100%}
+h1,h2,h3,p,li{overflow-wrap:break-word}
+.coach__grid>*,.guest__grid>*,.finale__grid>*,.cards>*,.facts>*,.tl__day,.tl__card,.explain>*,.hero__copy{min-width:0}
+
+/* Logo GCAP + pastille 11 : tout est proportionnel à la largeur réelle de l'écran */
+.logo-mark{display:flex;align-items:flex-start;line-height:.8;font-size:clamp(70px,calc((100vw - 32px) / 3.4),320px)}
+.logo-mark__word{font:400 1em/.8 var(--f-display);letter-spacing:-.005em;filter:drop-shadow(0 18px 40px rgba(0,0,0,.35))}
+.logo-mark__badge{flex:none;align-self:flex-end;display:grid;place-items:center;width:.56em;height:.56em;margin:0 0 -.1em -.1em;border-radius:50%;
+  background:radial-gradient(circle at 35% 28%,#ff6b6f 0%,var(--red) 45%,var(--red-lo) 100%);
+  box-shadow:0 0 0 .03em rgba(90,31,208,.95),0 0 0 .05em rgba(255,255,255,.18),0 .08em .2em -.04em rgba(224,36,43,.75)}
+.logo-mark__badge span{font:800 .26em/1 var(--f-body);color:#fff;letter-spacing:-.04em}
+@media (min-width:960px){.finale__title.logo-mark{font-size:clamp(150px,17vw,260px)}}
+
+@media (max-width:899px){
+  /* Hero : GCAP + 11 tiennent toujours dans la largeur */
+  .hero__title{font-size:calc((100vw - 32px) / 3.4)}
+  .hero__gcap{font-size:1em}
+  .hero__eleven{width:.56em;margin-left:-.1em;margin-bottom:-.1em;box-shadow:0 0 0 .03em rgba(90,31,208,.9),0 0 0 .05em rgba(255,255,255,.18),0 .08em .2em -.04em rgba(224,36,43,.75)}
+  .hero__eleven span{font-size:.26em}
+  /* 96 heures : chiffre au-dessus, texte dessous */
+  .fact--hours{grid-template-columns:1fr;row-gap:6px}
+  .fact__num{grid-row:auto;font-size:min(42vw,220px)}
+  .fact--days .fact__num{font-size:min(30vw,170px)}
+  .fact__big{font-size:min(13vw,92px);white-space:normal}
+  .fact__city{font-size:min(14vw,140px)}
+  .display{font-size:clamp(34px,11.5vw,104px)}
+  .tl__title{font-size:clamp(24px,7.6vw,40px)}
+  .tl__n{font-size:clamp(60px,19vw,110px)}
+  .guest__name{font-size:clamp(44px,15vw,148px)}
+  .urgency__title{font-size:clamp(40px,13vw,124px)}
+}
+/* Comptes à rebours : la taille des chiffres suit la largeur de l'écran */
+.cd{--tile:clamp(21px,calc((100vw - 104px) / 9.2),54px);--fs:calc(var(--tile) * .86);--gap:clamp(2px,.7vw,6px)}
+.cd--lg{--tile:clamp(21px,calc((100vw - 84px) / 9),92px)}
+.hero__cd .cd{--tile:clamp(21px,calc((100vw - 112px) / 9.4),40px);--fs:calc(var(--tile) * .86)}
+.cd__clock{gap:clamp(3px,1.2vw,14px)}
+@media (max-width:380px){
+  .cd__lbl{letter-spacing:.08em}
+  .btn{white-space:normal;height:auto;min-height:var(--h);padding-top:10px;padding-bottom:10px;text-align:center;line-height:1.25}
+  .cd-label{letter-spacing:.14em}
+}
+
+/* bouton « Activer le son » de la vidéo des Pass */
+.explain__sound{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);display:inline-flex;align-items:center;gap:10px;padding:12px 18px;border-radius:99px;border:0;
+  background:var(--gold-btn);color:#2a0b05;font:800 12px/1 var(--f-body);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;
+  box-shadow:0 0 0 6px rgba(243,193,67,.2),0 14px 30px -10px rgba(0,0,0,.7);animation:soundpulse 2.2s var(--ease) infinite}
+.explain__sound[hidden]{display:none}
+@keyframes soundpulse{50%{box-shadow:0 0 0 12px rgba(243,193,67,.06),0 14px 30px -10px rgba(0,0,0,.7)}}
+@media (max-width:320px){
+  .card,.card--vvip{padding:26px 18px}
+  .card__name,.card--vvip .card__name{font-size:clamp(56px,24vw,120px)}
+  .card__ribbon{font-size:9px;letter-spacing:.12em}
+  .logo-mark{font-size:calc((100vw - 40px) / 3.5)}
+}
+@media (max-width:520px){.fact--days{grid-column:1/-1}}

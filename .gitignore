@@ -1,0 +1,5 @@
+# Originaux trop lourds pour Cloudflare Pages (limite 25 Mo/fichier) : versions web déjà présentes
+*.MOV
+*.mov
+assets/video/hero video.mp4
+assets/img/IMG-*.jpg

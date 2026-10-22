@@ -73,9 +73,20 @@
   var vid = $(".hero__video");
   var saveData = navigator.connection && navigator.connection.saveData;
   if (vid && C.heroVideo && !reduce && !saveData) {
+    /* iOS / Android : lecture auto autorisée seulement si muette + inline,
+       et il faut appeler play() directement (iOS ne déclenche pas toujours
+       "canplay" quand preload="none"). Sinon l'image fixe reste affichée. */
+    vid.muted = true; vid.defaultMuted = true;
+    vid.setAttribute("muted", ""); vid.setAttribute("playsinline", ""); vid.setAttribute("webkit-playsinline", "");
+    vid.autoplay = true; vid.preload = "auto";
     vid.src = C.heroVideo;
-    vid.addEventListener("canplay", function () { vid.classList.add("is-on"); vid.play().catch(function () {}); }, { once: true });
-    vid.load();
+    vid.addEventListener("playing", function () { vid.classList.add("is-on"); });
+    var tryPlay = function () { var pr = vid.play(); if (pr && pr.catch) pr.catch(function () {}); };
+    tryPlay();
+    /* certains navigateurs mobiles bloquent l'autoplay jusqu'au premier contact */
+    ["touchstart", "scroll", "click"].forEach(function (ev) {
+      window.addEventListener(ev, function once() { if (vid.paused) tryPlay(); window.removeEventListener(ev, once); }, { passive: true });
+    });
     /* pause quand le Hero n'est plus visible (batterie / data mobile) */
     if ("IntersectionObserver" in window) {
       new IntersectionObserver(function (en) {
@@ -105,18 +116,45 @@
     $$("[data-film-close]", filmBox).forEach(function (b) { b.addEventListener("click", closeFilm); });
   }
 
-  /* ---------- Vidéo explicative des deux Pass ---------- */
+  /* ---------- Vidéo explicative des deux Pass ----------
+     Lecture AUTOMATIQUE quand le lecteur arrive à l'écran (muette : c'est la
+     seule lecture automatique que les navigateurs mobiles autorisent), pause
+     quand il sort. Bouton « Activer le son » : reprend depuis le début, avec le son. */
   var ex = $("[data-explain]");
   if (ex) {
-    var exWrap = ex.closest(".explain"), exVid = $("video", ex), exBtn = $("[data-explain-play]", ex);
-    exBtn.addEventListener("click", function () {
-      exWrap.classList.add("is-playing");
-      exVid.controls = true;
-      exVid.play().catch(function () {});
-      exVid.focus && exVid.focus();
-    });
-    exVid.addEventListener("ended", function () { exVid.controls = false; exWrap.classList.remove("is-playing"); exVid.load(); });
-    /* une seule vidéo sonore à la fois */
+    var exWrap = ex.closest(".explain"), exVid = $("video", ex), exBtn = $("[data-explain-play]", ex), exSound = $("[data-explain-sound]", ex);
+    var exUser = false; /* le visiteur a pris la main (son activé ou pause manuelle) */
+    exVid.muted = true; exVid.defaultMuted = true;
+    function exStartMuted() {
+      if (exUser) return;
+      if (exVid.preload !== "auto") { exVid.preload = "auto"; }
+      var pr = exVid.play();
+      if (pr && pr.then) pr.then(function () {
+        exWrap.classList.add("is-playing"); exSound.hidden = !exVid.muted;
+      }).catch(function () { /* autoplay refusé (économie d'énergie) : le bouton Play reste */ });
+    }
+    function exWithSound() {
+      exUser = true;
+      exVid.muted = false; exVid.controls = true;
+      exWrap.classList.add("is-playing"); exSound.hidden = true;
+      if (filmVid && !filmVid.paused) filmVid.pause();
+      try { exVid.currentTime = 0; } catch (e) {}
+      var pr = exVid.play(); if (pr && pr.catch) pr.catch(function () {});
+    }
+    exBtn.addEventListener("click", exWithSound);
+    exSound.addEventListener("click", exWithSound);
+    exVid.addEventListener("click", function () { if (exVid.muted && !exUser) exWithSound(); });
+    exVid.addEventListener("pause", function () { if (exVid.controls && !exVid.ended && document.visibilityState === "visible" && exInView) exUser = true; });
+    exVid.addEventListener("ended", function () { exVid.controls = false; exVid.muted = true; exSound.hidden = true; exWrap.classList.remove("is-playing"); exUser = true; });
+    var exInView = false;
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (en) {
+        exInView = en[0].isIntersecting;
+        if (exInView) { if (!exUser) exStartMuted(); }
+        else if (!exVid.paused) { exVid.pause(); }
+      }, { threshold: 0.45 }).observe(exVid);
+    }
+    /* reprise si on revient sur la vidéo après l'avoir mise en son */
     exVid.addEventListener("play", function () { if (filmVid && !filmVid.paused) filmVid.pause(); });
   }
 

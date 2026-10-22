@@ -1,0 +1,6 @@
+gcap11-hero.mp4 : boucle muette du Hero (~6 Mo)
+gcap11-film.mp4 : film officiel complet avec le son (~15 Mo, chargé au clic)
+explication.mp4 : vidéo officielle des deux Pass, version web intégrale de explication.MOV (~16 Mo)
+
+Ne pas mettre en ligne de fichier de plus de 25 Mo (limite Cloudflare Pages) :
+les originaux .MOV et 'hero video.mp4' restent en local seulement.

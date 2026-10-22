@@ -479,12 +479,16 @@
       </div>
       <figure class="explain__player" data-explain>
         <div class="explain__frame">
-          <video playsinline preload="none" poster="assets/img/explication-poster.webp" aria-label="Vidéo officielle : la différence entre le Pass VIP et le Pass VVIP, expliquée par le Coach Simon Ouedraogo">
+          <video muted playsinline webkit-playsinline preload="none" poster="assets/img/explication-poster.webp" aria-label="Vidéo officielle : la différence entre le Pass VIP et le Pass VVIP, expliquée par le Coach Simon Ouedraogo">
             <source src="assets/video/explication.mp4" type="video/mp4">
           </video>
           <button type="button" class="explain__play" data-explain-play aria-label="Lire la vidéo explicative des deux Pass">
             <span class="explain__btn" aria-hidden="true"><svg viewBox="0 0 24 24" width="30" height="30"><path fill="currentColor" d="M8 5.5v13l10.5-6.5z"/></svg></span>
             <span class="explain__cta">Regarder l'explication</span>
+          </button>
+          <button type="button" class="explain__sound" data-explain-sound hidden aria-label="Activer le son et reprendre la vidéo depuis le début">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>
+            <span>Activer le son</span>
           </button>
         </div>
         <figcaption>Explication officielle des Pass VIP et VVIP · GCAP11</figcaption>
@@ -527,9 +531,9 @@
   </div>
   <div class="wrap finale__grid">
     <div class="finale__copy">
-      <h2 id="finale-title" class="finale__title reveal">
+      <h2 id="finale-title" class="logo-mark finale__title reveal">
         <span class="sr-only">GCAP11</span>
-        <span class="gold-text" aria-hidden="true">GCAP</span><span class="finale__eleven" aria-hidden="true"><b>11</b></span>
+        <span class="logo-mark__word gold-text" aria-hidden="true">GCAP</span><span class="logo-mark__badge" aria-hidden="true"><span>11</span></span>
       </h2>
       <ul class="finale__triad reveal" style="--d:.08s">
         <li><b>96</b> heures</li><li><b>4</b> jours</li><li>Une <b>immersion</b></li>
