@@ -117,45 +117,65 @@
   }
 
   /* ---------- Vidéo explicative des deux Pass ----------
-     Lecture AUTOMATIQUE quand le lecteur arrive à l'écran (muette : c'est la
-     seule lecture automatique que les navigateurs mobiles autorisent), pause
-     quand il sort. Bouton « Activer le son » : reprend depuis le début, avec le son. */
+     Lecture AUTOMATIQUE dès que le lecteur approche de l'écran, sans toucher
+     de bouton. Avec le son si le navigateur l'autorise (le visiteur a déjà
+     touché la page), sinon muette — c'est la règle de tous les navigateurs
+     mobiles — avec un bouton « Activer le son ». Le bouton Play n'apparaît
+     que si le téléphone bloque toute lecture automatique (mode économie). */
   var ex = $("[data-explain]");
   if (ex) {
     var exWrap = ex.closest(".explain"), exVid = $("video", ex), exBtn = $("[data-explain-play]", ex), exSound = $("[data-explain-sound]", ex);
-    var exUser = false; /* le visiteur a pris la main (son activé ou pause manuelle) */
+    var exUser = false, exStarted = false, exInView = false, exLoading = false;
     exVid.muted = true; exVid.defaultMuted = true;
-    function exStartMuted() {
-      if (exUser) return;
-      if (exVid.preload !== "auto") { exVid.preload = "auto"; }
+    exWrap.classList.add("is-auto");               /* pas de bouton Play par défaut */
+    function exShowSound() { exSound.hidden = !exVid.muted; }
+    function exFail() { exWrap.classList.remove("is-auto"); exWrap.classList.add("is-blocked"); }
+    function exPlay() {
+      if (exUser || !exInView) return;
+      if (!exLoading) { exLoading = true; exVid.preload = "auto"; exWrap.classList.add("is-loading"); }
+      var canSound = navigator.userActivation && navigator.userActivation.hasBeenActive;
+      if (canSound && !exStarted) exVid.muted = false;
       var pr = exVid.play();
-      if (pr && pr.then) pr.then(function () {
-        exWrap.classList.add("is-playing"); exSound.hidden = !exVid.muted;
-      }).catch(function () { /* autoplay refusé (économie d'énergie) : le bouton Play reste */ });
+      if (!pr || !pr.then) return;
+      pr.then(function () {
+        exStarted = true; exWrap.classList.add("is-playing"); exWrap.classList.remove("is-loading"); exShowSound();
+      }).catch(function (err) {
+        if (!exVid.muted) { exVid.muted = true; exPlay(); return; }   /* son refusé : on relance muette */
+        if (err && err.name === "NotAllowedError") exFail();
+      });
     }
     function exWithSound() {
       exUser = true;
       exVid.muted = false; exVid.controls = true;
-      exWrap.classList.add("is-playing"); exSound.hidden = true;
+      exWrap.classList.remove("is-blocked", "is-loading"); exWrap.classList.add("is-playing", "is-auto"); exSound.hidden = true;
       if (filmVid && !filmVid.paused) filmVid.pause();
-      try { exVid.currentTime = 0; } catch (e) {}
+      if (exStarted) { try { exVid.currentTime = 0; } catch (e) {} }
       var pr = exVid.play(); if (pr && pr.catch) pr.catch(function () {});
     }
     exBtn.addEventListener("click", exWithSound);
     exSound.addEventListener("click", exWithSound);
-    exVid.addEventListener("click", function () { if (exVid.muted && !exUser) exWithSound(); });
-    exVid.addEventListener("pause", function () { if (exVid.controls && !exVid.ended && document.visibilityState === "visible" && exInView) exUser = true; });
-    exVid.addEventListener("ended", function () { exVid.controls = false; exVid.muted = true; exSound.hidden = true; exWrap.classList.remove("is-playing"); exUser = true; });
-    var exInView = false;
-    if ("IntersectionObserver" in window) {
-      new IntersectionObserver(function (en) {
-        exInView = en[0].isIntersecting;
-        if (exInView) { if (!exUser) exStartMuted(); }
-        else if (!exVid.paused) { exVid.pause(); }
-      }, { threshold: 0.45 }).observe(exVid);
-    }
-    /* reprise si on revient sur la vidéo après l'avoir mise en son */
+    exVid.addEventListener("click", function () { if (exVid.muted) exWithSound(); });
+    exVid.addEventListener("playing", function () { exWrap.classList.add("is-playing"); exWrap.classList.remove("is-loading"); exShowSound(); });
+    exVid.addEventListener("volumechange", exShowSound);
+    exVid.addEventListener("ended", function () { exVid.controls = false; exSound.hidden = true; exUser = true; });
     exVid.addEventListener("play", function () { if (filmVid && !filmVid.paused) filmVid.pause(); });
+    /* précharge les premières secondes quand on approche de la section */
+    function exCheck() {
+      var r = exVid.getBoundingClientRect(), vh = innerHeight || document.documentElement.clientHeight;
+      var near = r.top < vh * 1.8 && r.bottom > -vh;
+      if (near && exVid.preload === "none") exVid.preload = "metadata";
+      var visible = Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0));
+      var was = exInView; exInView = visible > Math.min(r.height, vh) * 0.3;
+      if (exInView && !was) exPlay();
+      else if (!exInView && was && !exVid.paused) exVid.pause();
+      else if (exInView && exVid.paused && exStarted && !exUser && !exVid.ended) exVid.play().catch(function () {});
+    }
+    /* IntersectionObserver + défilement (certains navigateurs intégrés n'envoient pas l'un ou l'autre) */
+    if ("IntersectionObserver" in window) new IntersectionObserver(exCheck, { threshold: [0, .15, .3, .5] }).observe(exVid);
+    window.addEventListener("scroll", function () { requestAnimationFrame(exCheck); }, { passive: true });
+    window.addEventListener("resize", exCheck);
+    document.addEventListener("visibilitychange", function () { if (document.hidden) exVid.pause(); else exCheck(); });
+    exCheck();
   }
 
   /* ---------- Escalier GCAP1 → GCAP11 ---------- */
@@ -248,17 +268,10 @@
   }
 
   /* ---------- Compteurs animés ---------- */
+  /* chiffres affichés tels quels (96, 04, 11), sans animation de comptage */
   function countUp(el) {
-    var to = +el.dataset.countup, p = +(el.dataset.pad || 0), t0 = null, dur = 1600;
-    if (reduce) { el.textContent = p ? pad(to, p) : to; return; }
-    function step(t) {
-      if (!t0) t0 = t;
-      var k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3), n = Math.round(to * e);
-      el.textContent = p ? pad(n, p) : n;
-      if (k < 1) requestAnimationFrame(step);
-    }
-    el.textContent = p ? pad(0, p) : 0;
-    requestAnimationFrame(step);
+    var to = +el.dataset.countup, p = +(el.dataset.pad || 0);
+    el.textContent = p ? pad(to, p) : to;
   }
 
   /* ---------- Révélations au scroll ---------- */

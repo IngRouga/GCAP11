@@ -21,11 +21,11 @@ window.GCAP_CONFIG = {
 
   /* Vidéo du Hero : boucle muette en arrière-plan (extrait du film officiel).
      Laissez "" pour n'afficher que l'image fixe + le portrait du Coach. */
-  heroVideo: "assets/video/gcap11-hero.mp4?v=20261022b",
+  heroVideo: "assets/video/gcap11-hero.mp4?v=20261022c",
 
   /* Film officiel complet, avec le son : bouton « Regarder le film officiel ».
      Chargé uniquement quand le visiteur clique. Laissez "" pour masquer le bouton. */
-  filmVideo: "assets/video/gcap11-film.mp4?v=20261022b",
+  filmVideo: "assets/video/gcap11-film.mp4?v=20261022c",
 
   /* Les Pass — avantages OFFICIELS (ne rien ajouter sans validation).
      Les avantages du VVIP absents du VIP sont mis en avant automatiquement. */

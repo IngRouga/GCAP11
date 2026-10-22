@@ -799,3 +799,24 @@ h1,h2,h3,p,li{overflow-wrap:break-word}
   .logo-mark{font-size:calc((100vw - 40px) / 3.5)}
 }
 @media (max-width:520px){.fact--days{grid-column:1/-1}}
+
+
+/* =========================================================
+   GCAP en toutes lettres + chiffres entiers (aucun recouvrement, aucune coupe)
+   ========================================================= */
+/* la pastille 11 se place À CÔTÉ du P, sans le recouvrir */
+.hero__eleven{margin-left:.05em!important}
+.logo-mark__badge{margin-left:.05em}
+.brand__badge{margin-left:2px}
+/* les textes dorés (dégradé découpé dans les lettres) reçoivent une marge
+   intérieure pour que le haut et le bas des lettres/chiffres ne soient jamais rognés */
+.hero__gcap,.logo-mark__word,.fact__num,.legacy__count,.tl__n,.card__amount,.card--vvip .card__name,.urgency__title .gold-text,.display .gold-text,.cd__d i,.brand__word{
+  padding:.1em .04em .12em;margin:-.1em -.04em -.12em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.hero__gcap,.logo-mark__word,.fact__num,.legacy__count,.tl__n{display:inline-block;filter:none}
+/* lecture auto de la vidéo des Pass : pas de bouton Play tant que la lecture est possible */
+.explain.is-auto .explain__play{display:none}
+.explain.is-loading .explain__frame::after{content:"";position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;
+  border:3px solid rgba(243,193,67,.25);border-top-color:var(--gold);animation:spin2 .9s linear infinite;pointer-events:none}
+.explain.is-playing .explain__frame::after{display:none}
+@keyframes spin2{to{transform:rotate(360deg)}}
+.explain.is-blocked .explain__play{display:grid}
